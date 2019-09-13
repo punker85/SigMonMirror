@@ -1,5 +1,4 @@
-# SigMon
-## Signal Monitoring for Crowd Management
+# SigMon - Signal Monitoring for Crowd Management 
 
 # Schedule
 ## Week 1: Set up Technologies (9/6)
