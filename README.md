@@ -1,6 +1,5 @@
 # SigMon
 ## Signal Monitoring for Crowd Management
-### Use Cases/Tests 
 
 # Schedule
 ## Week 1: Set up Technologies (9/6)
