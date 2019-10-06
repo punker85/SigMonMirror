@@ -3,7 +3,7 @@ try
 {
 	$host = "localhost" ;
 	$user = "root" ;
-	$pass = "Ilovekim0" ;
+	$pass = "" ;
 	$db = "sigmon" ;
 	$table = "experiment" ;
 	
