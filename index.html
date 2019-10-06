@@ -3,21 +3,25 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1"/>
-	<link type="text/css" href="./bootstrap-4.3.1-dist/css/bootstrap.css" rel="stylesheet" />
-	<link type="text/css" href="custom.css" rel="stylesheet" />
-	<!--<link type="text/css" href="./bootstrap-4.3.1-dist/css/bootstrap.min.css" rel="stylesheet" />-->
-	<!--<link type="text/css" href="./jquery/css/vader/jquery-ui.css" rel="stylesheet" />-->
 
 	<title>Signal Monitor (beta)</title>
-	<script type="text/javascript" src="support.js"></script>
-	<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAy7XIg38gprgX1z6UXqc4wixEOVjWcsas&callback=initialize"></script>
 	
+	<!-- Basic CDN libraries (Bootstrap, JQuery, Popper) -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 	<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha384-vk5WoKIaW/vJyUAd9n/wmopsmNhiy+L2Z+SBxGYnUkunIxVxAv/UtMOhba/xskxh" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
+	<!-- Datepicker library -->
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.css"/>
+	
+	<!-- Local libraries -->
+	<script type="text/javascript" src="./js/support.js"></script>
+	<link type="text/css" href="./css/custom.css" rel="stylesheet" />
+
+	<!-- Google Maps API -->
+	<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAy7XIg38gprgX1z6UXqc4wixEOVjWcsas&callback=initialize"></script>
 
 	<script type="text/javascript">
 	$(function() {
@@ -25,39 +29,10 @@
 		$("#main-menu").toggleClass("d-none") ; 
 		$("#menu-toggle").toggleClass("btn-danger").toggleClass("btn-outline-primary") ; 
 	});
-	
-	var expDateInput = $("#expDate") ;
-	var expForm = $("body") ;
-	var expDateOpt = {
-		format: 'mm/dd/yyyy',
-		container: expForm,
-		todayHighlight: true,
-		autoclose: true,
-	} ;
-	expDateInput.datepicker(expDateOpt) ;
-	
-	$('#expTest').on('submit', function(e) {
-		e.preventDefault();
-		var formData = {
-			'place'	: $("#expPlace").val(),
-			'date' 	: $("#expDate").val(),
-			'time' 	: $("#expTime").val(),
-			'lat'	: $("#expLat").val(),
-			'lng'	: $("#expLng").val()
-		};
-		
-		$.ajax({
-			url : $(this).attr('action'),
-			type: "POST",
-			data: formData,
-			dataType: 'script',
-			error: function (jXHR, textStatus, errorThrown) {
-				alert(errorThrown);
-			}
-		});
-	});
-	
 	$('#showExp').click(function(e) {	
+		nodes.clear();
+		output.push();
+		output.add("Query sent to Experiment table...");
 		$.ajax({
 			url : $(this).attr('action'),
 			type: "GET",
@@ -67,75 +42,6 @@
 			}
 		});
 	});
-	
-	var exp_mm_listen ;
-	var exp_cl_listen ;
-	var exp_marker ;
-	var expLat = $("#expLat") ;
-	var expLng = $("#expLng") ;
-	$("#btn-collapseOne").click( function() {
-		if(!exp_cl_listen)
-		{
-			exp_mm_listen = google.maps.event.addListener(map, "mousemove", function(event) {
-				expLat.val(event.latLng.lat().toFixed(10)) ; 
-				expLng.val(event.latLng.lng().toFixed(10)) ;
-			}) ;
-			exp_cl_listen = google.maps.event.addListener(map, "click", function(event) {
-				if(!exp_mm_listen)
-				{
-					exp_mm_listen = google.maps.event.addListener(map, "mousemove", function(event) {
-						expLat.val(event.latLng.lat().toFixed(10)) ; 
-						expLng.val(event.latLng.lng().toFixed(10)) ;
-					}) ;
-					exp_marker.setMap(null) ;
-					exp_marker = null ;
-					expLat.val(event.latLng.lat().toFixed(10)) ; 
-					expLng.val(event.latLng.lng().toFixed(10)) ;
-				} else {
-					google.maps.event.clearListeners(map, "mousemove") ;
-					exp_mm_listen = null ;
-					exp_marker = new google.maps.Marker({
-						position:	event.latLng,
-						icon:		"./image/icons8-down-arrow-64.png",
-						draggable:	false,
-						animation:	google.maps.Animation.DROP,
-						map:		map
-					}) ;
-					expLat.val(event.latLng.lat().toFixed(10)) ; 
-					expLng.val(event.latLng.lng().toFixed(10)) ;
-				}
-			}) ;
-			output.push() ;
-			output.add("Mouse Trace event activated...") ;
-			output.timestamp() ;
-		} else {
-			google.maps.event.clearListeners(map, "mousemove") ;
-			google.maps.event.clearListeners(map, "click") ;
-			if(exp_marker)
-				exp_marker.setMap(null) ;
-			exp_mm_listen = null ;
-			exp_cl_listen = null ;
-			exp_marker = null ;
-			output.push() ;
-			output.add("Mouse Trace event removed.") ;
-			output.timestamp() ;
-		}
-	});
-	
-	$("#output-expand").hover( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); },
-								function() { $(this).css("background","#17202a").find("img").toggleClass("d-none"); })
-			.mousedown( function() { $(this).css("background","#bd2130").find("img").toggleClass("d-none"); })
-			.mouseup( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); });
-			
-	$("#output-minimize").hover( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); },
-							   function() { $(this).css("background","#17202a").find("img").toggleClass("d-none"); })
-			.mousedown( function() { $(this).css("background","#bd2130").find("img").toggleClass("d-none"); })
-			.mouseup( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); });
-	
-	$("#output-remove").hover( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); },
-							   function() { $(this).css("background","#17202a").find("img").toggleClass("d-none"); })
-			.mousedown( function() { $(this).css("background","#bd2130").find("img").toggleClass("d-none"); })
-			.mouseup( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); });
 	});
 	</script>
 </head>
@@ -183,14 +89,12 @@
 				</div>
 			</nav>
 			<!-- / Top Menu -->
-			
 			<!-- Map Content -->
 			<div class="top-column">
            	<div id="map">
 			</div>
 			</div>
 			<!-- / Map Content -->
-			
 			<!-- Message Console -->
 			<div id="output" class="bg-dark text-success">
 				<div class="full-h">
@@ -198,41 +102,34 @@
 						<p class="text-right">Console-></p>
 					</div>
 					<div id="output-main">
-					
 						<div id="output-content">
-						
 							<div id="output-recent">
 							<p id="p-recent" class="text-left">
 							</p></div>
-							
 							<div id="output-history">
 							<p id="p-history" class="text-left text-success">
 							</p></div>
-							
 						</div>
-						
 						<div id="output-controls" class="rounded-NE">
 							<div id="output-expand" class="btn-square rounded-NE">
-								<img src="./image/baseline_fullscreen_white_18dp.png" />
-								<img src="./image/baseline_fullscreen_black_18dp.png" class="d-none" />
+								<img src="./img/baseline_fullscreen_white_18dp.png" style="vertical-align: top" />
+								<img src="./img/baseline_fullscreen_black_18dp.png" class="d-none" style="vertical-align: top" />
 							</div>
 							<div id="output-minimize" class="btn-square rounded-NE d-none">
-								<img src="./image/baseline_fullscreen_exit_white_18dp.png" />
-								<img src="./image/baseline_fullscreen_exit_black_18dp.png" class="d-none" />
+								<img src="./img/baseline_fullscreen_exit_white_18dp.png" style="vertical-align: top" />
+								<img src="./img/baseline_fullscreen_exit_black_18dp.png" class="d-none" style="vertical-align: top" />
 							</div>
 							<div id="output-remove" class="btn-square">
-								<img src="./image/baseline_close_white_18dp.png" />
-								<img src="./image/baseline_close_black_18dp.png" class="d-none" />
+								<img src="./img/baseline_close_white_18dp.png" style="vertical-align: top" />
+								<img src="./img/baseline_close_black_18dp.png" class="d-none" style="vertical-align: top" />
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 			<!-- / Message Console -->
-			
         </div>
         <!-- / Middle Column -->
-
 		<!-- Right Column -->
     	<div class="col-md-2 top-column">
 			<div class="sidebar-nav-fixed pull-right affix">
@@ -246,7 +143,11 @@
 							</h2>
 							<div id="collapseOne" class="collapse" data-parent="#accordionExample">
 								<div class="card-body" style="padding: 0.5rem 0.25rem">
-									<form id="expTest" action="./php/exp_test.php" method="post">
+									<form id="expTest" action="./php/exp_test.php" method="post" autocomplete="off" novalidate>
+										<div id="expLoading" class="form-group" style="margin-bottom: 0.5rem">
+											<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+											<span class="text-warning">Loading Scanners...</span>
+										</div>
 										<div class="form-group" style="margin-bottom: 0.5rem">
 											<input id="expPlace" class="form-control" type="text" name="place" placeholder="Place" required>
 										</div>
@@ -274,8 +175,23 @@
 								</button>
 							</h2>
 							<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
-								<div class="card-body">
-									More Data in this one...
+								<div class="card-body" style="padding: 0.5rem 0.25rem">
+									<form id="devTest" action="./php/dev_test.php" method="post" autocomplete="off" novalidate>
+										<div id="devLoading" class="form-group" style="margin-bottom: 0.5rem">
+											<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+											<span class="text-warning">Loading Experiments...</span>
+										</div>
+										<div class="form-group" style="margin-bottom: 0.5rem">
+											<input id="devMac" class="form-control" type="text" name="mac" placeholder="MAC Address" required>
+										</div>
+									    <div class="form-group" style="margin-bottom: 0.5rem">
+											<input id="devDate" class="form-control" type="text" name="date" placeholder="MM/DD/YYYY" readonly required>
+									    </div>
+										<div class="form-group" style="margin-bottom: 0.5rem">
+											<input id="devTime" class="form-control" type="time" name="time" step="1" placeholder="00:00:00" required>
+									    </div>
+										<button id="devSubmit" type="submit" class="btn btn-primary">Submit Entry</button>
+									</form>
 								</div>
 							</div>
 						</div>
@@ -286,8 +202,27 @@
 								</button>
 							</h2>
 							<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
-								<div class="card-body">
-									I don't know what to put here.
+								<div class="card-body" style="padding: 0.5rem 0.25rem">
+									<form id="rssTest" action="./php/rss_test.php" method="post" autocomplete="off" novalidate>
+										<div id="rssLoading" class="form-group" style="margin-bottom: 0.5rem">
+											<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+											<span class="text-warning">Loading Experiments...</span>
+										</div>
+										<div id="rssLoading2" class="form-group" style="margin-bottom: 0.5rem">
+											<span class="spinner-border spinner-border-sm text-danger" role="status"></span>
+											<span class="text-danger">Waiting...</span>
+										</div>
+									    <div class="form-group" style="margin-bottom: 0.5rem">
+											<input id="rssDate" class="form-control" type="text" name="date" placeholder="MM/DD/YYYY" readonly required>
+									    </div>
+										<div class="form-group" style="margin-bottom: 0.5rem">
+											<input id="rssTime" class="form-control" type="time" name="time" step="1" placeholder="00:00:00" required>
+									    </div>
+										<div class="form-group" style="margin-bottom: 0.5rem">
+											<input id="rssRssi" class="form-control" type="text" name="rssi" placeholder="RSSI" required>
+										</div>
+										<button id="rssSubmit" type="submit" class="btn btn-primary">Submit Entry</button>
+									</form>
 								</div>
 							</div>
 						</div>
@@ -298,7 +233,6 @@
             <!--/sidebar-nav-fixed -->
         </div>
         <!-- / Right Column -->
-		
     </div>
     <!--/row-->
 	</div>
