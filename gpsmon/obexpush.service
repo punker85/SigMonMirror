@@ -1,0 +1,10 @@
+[Unit]
+Description=OBEX Push Service
+After=gpsmon.service
+Requires=gpsmon.service
+
+[Service]
+ExecStart=/usr/bin/obexpushd -A -B23 -o /home/pi/obexpush -n
+
+[Install]
+WantedBy=multi-user.target
