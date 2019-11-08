@@ -1,0 +1,10 @@
+[Unit]
+Description=RFCOMM Terminal Service
+After=blueagent5.service
+Requires=blueagent5.service
+
+[Service]
+ExecStart=/usr/bin/rfcomm -A -E watch /dev/rfcomm0 22 getty rfcomm0 115200 vt100 -a pi
+
+[Install]
+WantedBy=multi-user.target
