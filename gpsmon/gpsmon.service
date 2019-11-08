@@ -1,0 +1,10 @@
+[Unit]
+Description=GPS File Monitor
+After=blueagent5.service
+Requires=blueagent5.service
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/gpsmon
+
+[Install]
+WantedBy=multi-user.target
