@@ -1,253 +1,278 @@
-var map, centerLat = 29.648612, centerLng = -82.343504 ;
-var http ;
-var output ;
-var testmenu ;
-var nodes ;
-
-if(navigator.appName == "Microsoft Internet Explorer")
-{
-	http = new ActiveXObject("Microsoft.XMLHTTP") ;
-}
-else
-{
-	http = new XMLHttpRequest() ;
-}
+var centerLat = 29.648612, centerLng = -82.343504;
+var map, output, testmenu, nodes, control;
 	
-function initialize() 
-{
-	output = new Output("output") ;
-	$("#output-expand").click(function() {output.expand();}) ;
-	$("#output-minimize").click(function() {output.minimize();}) ;
-	$("#output-remove").click(function() {output.remove();}) ;
+function initialize() {
+	output = new Output("output", "out-exp", "out-min", "out-rem");
 	
+	let style = [{"elementType": "geometry",
+		"stylers": [{"color": "#1d2c4d"}]},
+		{"elementType": "labels.text.fill",
+		"stylers": [{"color": "#8ec3b9"}]},
+		{"elementType": "labels.text.stroke",
+		"stylers": [{"color": "#1a3646"}]},
+		{"featureType": "administrative.country",
+		"elementType": "geometry.stroke",
+		"stylers": [{"color": "#4b6878"}]},
+		{"featureType": "administrative.land_parcel",
+		"elementType": "labels.text.fill",
+		"stylers": [{"color": "#64779e"}]},
+		{"featureType": "administrative.province",
+		"elementType": "geometry.stroke",
+		"stylers": [{"color": "#4b6878"}]},
+		{"featureType": "landscape.man_made",
+		"elementType": "geometry.stroke",
+		"stylers": [{"color": "#334e87"}]},
+		{"featureType": "landscape.natural",
+		"elementType": "geometry",
+		"stylers": [{"color": "#023e58"}]},
+		{"featureType": "poi",
+		"elementType": "geometry",
+		"stylers": [{"color": "#283d6a"}]},
+		{"featureType": "poi",
+		"elementType": "labels.text.fill",
+		"stylers": [{"color": "#6f9ba5"}]},
+		{"featureType": "poi",
+		"elementType": "labels.text.stroke",
+		"stylers": [{"color": "#1d2c4d"}]},
+		{"featureType": "poi.park",
+		"elementType": "geometry.fill",
+		"stylers": [{"color": "#023e58"}]},
+		{"featureType": "poi.park",
+		"elementType": "labels.text.fill",
+		"stylers": [{"color": "#3C7680"}]},
+		{"featureType": "road",
+		"elementType": "geometry",
+		"stylers": [{"color": "#304a7d"}]},
+		{"featureType": "road",
+		"elementType": "labels.text.fill",
+		"stylers": [{"color": "#98a5be"}]},
+		{"featureType": "road",
+		"elementType": "labels.text.stroke",
+		"stylers": [{"color": "#1d2c4d"}]},
+		{"featureType": "road.highway",
+		"elementType": "geometry",
+		"stylers": [{"color": "#2c6675"}]},
+		{"featureType": "road.highway",
+		"elementType": "geometry.stroke",
+		"stylers": [{"color": "#255763"}]},
+		{"featureType": "road.highway",
+		"elementType": "labels.text.fill",
+		"stylers": [{"color": "#b0d5ce"}]},
+		{"featureType": "road.highway",
+		"elementType": "labels.text.stroke",
+		"stylers": [{"color": "#023e58"}]},
+		{"featureType": "transit",
+		"stylers": [{"visibility": "off"}]},
+		{"featureType": "transit",
+		"elementType": "labels.text.fill",
+		"stylers": [{"color": "#98a5be"}]},
+		{"featureType": "transit",
+		"elementType": "labels.text.stroke",
+		"stylers": [{"color": "#1d2c4d"}]},
+		{"featureType": "transit.line",
+		"elementType": "geometry.fill",
+		"stylers": [{"color": "#283d6a"}]},
+		{"featureType": "transit.station",
+		"elementType": "geometry",
+		"stylers": [{"color": "#3a4762"}]},
+		{"featureType": "water",
+		"elementType": "geometry",
+		"stylers": [{"color": "#0e1626"}]},
+		{"featureType": "water",
+		"elementType": "labels.text.fill",
+		"stylers": [{"color": "#4e6d70"}]},
+		{"featureType": "poi",
+		"elementType": "labels.icon",
+		"stylers": [{"visibility": "off"}]}];
+		
 	map = new google.maps.Map(document.getElementById("map"), {
 	  center: {lat: centerLat, lng: centerLng},
 	  draggableCursor: "pointer",
 	  clickableIcons: false,
+	  mapTypeControl: false,
+	  streetViewControl: false,
+	  styles: style,
 	  zoom: 18
 	});
-	google.maps.event.clearListeners(map, "dblclick") ;
-	output.add("Google Maps API loaded and ready") ;
-	output.timestamp() ;
+	output.add("Google Maps API loaded and ready");
+	output.timestamp();
 	
-	testmenu = new TestMenu("expTest", "devTest", "rssTest") ;
-	nodes = new Nodes(map) ;
+	testmenu = new TestMenu("expTest", "devTest", "rssTest");
+	nodes = new Nodes();
+	control = new ControlMenu("showExp", "showDev", "showRss", "showRed");
 }
 
-function Output(containerID)
-{
-	//member variables
-	this.container = $("#" + containerID);
-	this.recent;
-	this.content = new Array();
-	
-	//initialization
-	var output_expand = this.container.find("#output-expand");
-	output_expand.hover( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); },
-						function() { $(this).css("background","#17202a").find("img").toggleClass("d-none"); })
-			.mousedown( function() { $(this).css("background","#bd2130").find("img").toggleClass("d-none"); })
-			.mouseup( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); });
-	var output_minimize = this.container.find("#output-minimize");
-	output_minimize.hover( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); },
-							function() { $(this).css("background","#17202a").find("img").toggleClass("d-none"); })
-			.mousedown( function() { $(this).css("background","#bd2130").find("img").toggleClass("d-none"); })
-			.mouseup( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); });
-	var output_remove = this.container.find("#output-remove");
-	output_remove.hover( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); },
-						function() { $(this).css("background","#17202a").find("img").toggleClass("d-none"); })
-			.mousedown( function() { $(this).css("background","#bd2130").find("img").toggleClass("d-none"); })
-			.mouseup( function() { $(this).css("background","#dcdcdc").find("img").toggleClass("d-none"); });
-	
-	//functions
-	this.add = add ;
-	this.push = push ;
-	this.timestamp = timestamp ;
-	this.remove = remove ;
-	this.minimize = minimize ;
-	this.expand = expand ;
-	
-	function add(text)
-	{
-		this.recent = "<span class=\"rainbow\">" + text + "</span>" ;
-		var parse = $.parseHTML(this.recent) ;
+class MapTooltip extends google.maps.OverlayView {
+	constructor(position, place, tooltip) {
+		super();
+		this.position = position;
+		this.place = place;
+		this.tooltip = $("#"+tooltip).clone().removeAttr("id").removeClass("d-none");
+	}
+	onAdd() {
+		this.getPanes().markerLayer.appendChild(this.tooltip[0]);
+	}
+	draw() {
+		let marker = this.getProjection().fromLatLngToDivPixel(this.position);
+		this.tooltip.find(".tooltip-inner").html(this.place);
+		this.tooltip.css({ top:marker.y - this.tooltip.height() - 20, left:marker.x - (this.tooltip.width() / 2) }).addClass("show");
+	}
+	onRemove() {
+		this.tooltip.removeClass("show");
+		this.tooltip.remove();
+	}
+}
+
+class Output {
+	constructor(container, expand, minimize, remove) {
+		this.cont = $("#" + container);
+		this.exp = $("#" + expand);
+		this.min = $("#" + minimize);
+		this.rem = $("#" + remove);
+		this.recent = "";
+		
+		EventFactory.hoverOutput(this.exp);
+		EventFactory.hoverOutput(this.min);
+		EventFactory.hoverOutput(this.rem);
+		this.exp.click(this.expand);
+		this.min.click(this.minimize);
+		this.rem.click(this.remove);
+	}
+	add(msg) {
+		let html = "<span class=\"rainbow\">" + msg + "</span>";
+		this.recent += html;
+		let parse = $.parseHTML(html);
 		$(parse).html(function(i, html) {
-			var chars = $.trim(html).split("");
-			var word = "<span>";
+			let chars = $.trim(html).split("");
+			let word = "<span>";
 			for(i = 0; i < chars.length; i++)
-				word += chars[i] + "</span><span style=\"animation-delay: " +.02*i+ "s\">";
+				word += chars[i] + "</span><span style=\"animation-delay: " +.01*i+ "s\">";
 			word += "</span>";
 			return word;
-		}) ;
-		$("#p-recent").append(parse) ;
+		});
+		$("#out-new p.text-left").append(parse);
 	}
-	
-	function push()
-	{
-		$("#p-recent").html("") ;
-		$("#p-history").prepend("<p style=\"display: block\">" + this.recent + "</p>") ;
+	push() {
+		$("#out-new p.text-left").empty();
+		$("#out-old p.text-success").prepend("<p style=\"display: block\">" + this.recent + "</p>");
+		this.recent = "";
 	}
-	
-	function timestamp()
-	{
-		var time = new Date() ;
-		var str = "<span class=\"text-light timestamp\">&nbsp&nbsp-" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "</span>";
-		$("#p-recent").append(str) ;
-		this.recent += str ;
+	timestamp()	{
+		let time = new Date();
+		let hr = time.getHours();
+		let min = time.getMinutes();
+		let sec = time.getSeconds();
+		if(hr < 10)
+			hr = "0" + hr;
+		if(min < 10)
+			min = "0" + min;
+		if(sec < 10)
+			sec = "0" + sec;
+		let str = "<span class=\"text-light timestamp\">&nbsp&nbsp-" + hr + ":" + min + ":" + sec + "</span>";
+		$("#out-new p.text-left").append(str);
+		this.recent += str;
 	}
-	
-	function remove()
-	{
-		this.container.addClass("d-none") ;
+	remove() {
+		$("#output").addClass("d-none");
 	}
-	
-	function minimize()
-	{
-		this.container.css("top", "calc(100% - 3.5rem)") ;
-		output_expand.toggleClass("d-none") ;
-		output_minimize.toggleClass("d-none") ;
+	minimize() {
+		$("#output").css("top", "calc(100% - 3.5rem)");
+		$("#out-exp").toggleClass("d-none");
+		$("#out-min").toggleClass("d-none");
 	}
-	
-	function expand()
-	{
-		this.container.css("top", "50%") ;
-		output_expand.toggleClass("d-none") ;
-		output_minimize.toggleClass("d-none") ;
+	expand() {
+		$("#output").css("top", "50%");
+		$("#out-exp").toggleClass("d-none");
+		$("#out-min").toggleClass("d-none");
 	}
 }
 
-function Nodes(map)
-{
-	//member variables
-	this.map = map ;
-	this.nodes = new Array() ;
-	this.length = 0 ;
-	this.polynode = null ;
-	this.polyuser = new Array() ;
-	
-	//functions
-	this.add = add ;
-	this.clear = clear ;
-
-	function add(node)
-	{
-		this.nodes.push(node) ;
-		node.draw(this.map) ;
-		this.length++ ;
+class Nodes {
+	constructor() {
+		this.nodes = new Array();
+		this.length = 0;
 	}
-	
-	function clear()
-	{
-		var x = this.nodes.length ;
+	add(node) {
+		this.nodes.push(node);
+		this.length++;
+	}
+	clear() {
+		let x = this.nodes.length;
 		for(var i = 0; i < x; i++)
-		{
-			var temp = this.nodes.pop();
-			temp.clear();
-			temp = null;
-		}
-		this.length = 0 ;
+			this.nodes.pop().clear();
+		this.length = 0;
+	}
+	get(index) {
+		if(this.length == 0 || index < 0 || index >= this.nodes.length)
+			return null;
+		else
+			return this.nodes[index];
 	}
 }
 
-function Node(place, latitude, longitude)
-{
-	//member variables
-	this.place = place ;
-	this.latitude = latitude ;
-	this.longitude = longitude ;
-	this.marker ;
-	this.polygons = new Array() ;
-	
-	//functions
-	this.clear = clear ;
-	this.draw = draw ;
-	this.select = select ;
-	this.highlight = highlight ;
-	
-	function clear()
-	{
-		this.marker.setMap(null);
-		this.marker = null;
-	}
-	function draw(map)
-	{
+class Node {
+	constructor(map, id, place, latitude, longitude) {
+		this.map = map;
+		this.id = id;
+		this.place = place;
+		this.latitude = latitude;
+		this.longitude = longitude;
+		let icon = {
+			url: "./img/icons8-raspberry-pi-16.png",
+			size: new google.maps.Size(16, 16),
+			origin: new google.maps.Point(0, 0),
+			anchor: new google.maps.Point(8, 7)
+		};
 		this.marker = new google.maps.Marker({
 			position: new google.maps.LatLng(this.latitude, this.longitude),
-			icon: "./img/icons8-raspberry-pi-16.png",
-			map: map
+			icon: icon
 		});
-		/*
-		GEvent.addListener(this.marker, "mouseover", 
-			function()
-			{
-				$("#tooltip").hide() ;
-				var offset = map.fromLatLngToContainerPixel(center) ;
-				var offsetMenu = document.getElementById("map_menu").offsetWidth ;
-				$("#tooltip")
-					.css({ top:offset.y - 40, left:offset.x + offsetMenu + 55})
-					.html(building)
-					.show() ;
-			}
-		) ;
-		
-		GEvent.addListener(this.marker, "mouseout", 
-			function()
-			{
-				$("#tooltip").hide() ;
-			}
-		) ;
-		
-		GEvent.addListener(this.marker, "click", 
-			function()
-			{
-				(new Request("querynode.php", {"ap" : address}, $("#tabs-1"), false)).send() ;
-			}
-		) ;
-		*/
+		this.tooltip = new MapTooltip(this.marker.position, this.place, "tooltip");
+		this.coverage = new google.maps.Circle({
+					strokeColor: "#fbfbfb",
+					strokeOpacity: 0.9,
+					strokeWeight: 1,
+					fillColor: "#fbfbfb",
+					fillOpacity: 0.2,
+					center: this.marker.position,
+					radius: 12
+		});
+		let tool = this.tooltip;
+		this.marker.addListener("mouseover", function() {
+			tool.setMap(map);
+		});
+		this.marker.addListener("mouseout", function() {
+			tool.setMap(null);
+		});
 	}
-	function select(map)
-	{
-		var points = new Array() ;
-		for(var i = 0; i < 360; i += 15)
-		{
-			points.push(new GLatLng(
-				this.latitude + (.00045 * Math.sin(i * Math.PI / 180)),
-				this.longitude + (.00045 * Math.cos(i * Math.PI / 180))
-				)
-			) ;
-		}
-		points.push(points[0]) ;
-		var poly = new GPolygon(points, "#0080FF", 2, 1, "#0080FF", 0) ;
-		map.addOverlay(poly) ;
-		return poly ;
+	
+	clear() {
+		this.marker.setMap(null);
+		this.tooltip.setMap(null);
+		this.coverage.setMap(null);
 	}
-	function highlight(map, severity)
-	{
-		var polys = new Array() ;
-		for(var i = 0; i < severity; i++)
-		{					
-			var radius = (1 - i / severity) * .00045 ;
-			var alpha = .15 + .1 * severity ;
-			
-			var points = new Array() ;
-			for(var j = 0; j < 360; j += 15)
-			{
-				points.push(new GLatLng(
-					this.latitude + (radius * Math.sin(j * Math.PI / 180)),
-					this.longitude + (radius * Math.cos(j * Math.PI / 180))
-					)
-				) ;
-			}
-			points.push(points[0]) ;
-			var poly = new GPolygon(points, "#FF0000", 1, 0, "#FF0000", alpha) ;
-			map.addOverlay(poly) ;
-			polys.push(poly) ;
+	draw() {
+		let m = this.marker;
+		let c = this.coverage;
+		if(!m.getMap()) {
+			map.setZoom(19);
+			c.setOptions({strokeOpacity: 0.9, fillOpacity: 0.2});
+			setTimeout(function(){map.panTo(m.position);}, 300);
+			setTimeout(function(){map.setZoom(20);}, 600);
+			setTimeout(function(){m.setMap(map);c.setMap(map);}, 900);
+		} else {
+			setTimeout(function(){map.panTo(m.position);}, 200);
+			setTimeout(function(){map.setZoom(20);}, 500);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.7});}, 800);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.5, fillOpacity: 0.1});}, 900);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.3});}, 1000);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.1, fillOpacity: 0});}, 1100);
+			setTimeout(function(){m.setMap(null);c.setMap(null);}, 1200);
 		}
-		return polys ;
 	}	
 }
 
-function TestMenu(experiment, device, rssi)
-{
+function TestMenu(experiment, device, rssi) {
 	//member variables
 	this.experiment = $("#" + experiment) ;
 		var exp_mm_listen ;
@@ -272,11 +297,8 @@ function TestMenu(experiment, device, rssi)
 		format: "mm/dd/yyyy",
 		container: $("body"),
 		todayHighlight: true,
-		autoclose: true,
+		autoclose: true
 	}) ;
-	
-		//Form Update on Select (Experiment)
-	
 	
 		//Form Submit for Experiment
 	this.experiment.on("submit", function(e) {
@@ -288,7 +310,9 @@ function TestMenu(experiment, device, rssi)
 		var tmpTime = $(this).find("#expTime");
 		var tmpLat = $(this).find("#expLat");
 		var tmpLng = $(this).find("#expLng");
+		var tmpAuth = $("#passkey");
 		var formData = {
+			"auth"   :  tmpAuth.val(),
 			"scanner": 	tmpScanner.val(),
 			"place"	 :	tmpPlace.val(),
 			"date" 	 :	tmpDate.val(),
@@ -386,7 +410,9 @@ function TestMenu(experiment, device, rssi)
 		var tmpMac = $(this).find("#devMac");
 		var tmpDate = $(this).find("#devDate");
 		var tmpTime = $(this).find("#devTime");
+		var tmpAuth = $("#passkey");
 		var formData = {
+			"auth"       :  tmpAuth.val(),
 			"experiment" : 	tmpExperiment.val(),
 			"mac"		 :	tmpMac.val().toUpperCase(),
 			"date"		 :	tmpDate.val(),
@@ -468,11 +494,13 @@ function TestMenu(experiment, device, rssi)
 		var tmpRssi = $(this).find("#rssRssi");
 		var tmpDate = $(this).find("#rssDate");
 		var tmpTime = $(this).find("#rssTime");
+		var tmpAuth = $("#passkey");
 		var formData = {
-			"device"	: 	tmpDevice.val(),
-			"rssi"		:	tmpRssi.val(),
-			"date"		:	tmpDate.val(),
-			"time"		:	tmpTime.val()
+			"auth"  :  tmpAuth.val(),
+			"device":  tmpDevice.val(),
+			"rssi"	:  tmpRssi.val(),
+			"date"	:  tmpDate.val(),
+			"time"	:  tmpTime.val()
 		};
 		
 		var valid = true ;		
@@ -623,7 +651,7 @@ function TestMenu(experiment, device, rssi)
 				$("#expLoading").html(data);
 			},
 			error: function (jXHR, textStatus, errorThrown) {
-				alert(errorThrown);
+				output.add("Unknown error");
 			}
 		});
 	}
@@ -656,7 +684,7 @@ function TestMenu(experiment, device, rssi)
 		if(rssActive)
 			closeRss() ;
 		output.push() ;
-		output.add("Dev - loading experiment data.") ;
+		output.add("Device Test - loading Experiment data.") ;
 		
 		var formData = {
 			"table" :	"experiment"
@@ -671,7 +699,7 @@ function TestMenu(experiment, device, rssi)
 				$("#devLoading").html(data);
 				$("#devLoading").find("select").on("change", function(e) {
 					output.push() ;
-					output.add("Dev - loading experiment date.") ;
+					output.add("Device Test - loading Experiment date.") ;
 					
 					var formData = {
 						"table" :	"experiment",
@@ -687,13 +715,13 @@ function TestMenu(experiment, device, rssi)
 							$("#devLoading").append(data);
 						},
 						error: function (jXHR, textStatus, errorThrown) {
-							alert(errorThrown);
+							output.add("Unknown error");
 						}
 					});
 				});
 			},
 			error: function (jXHR, textStatus, errorThrown) {
-				alert(errorThrown);
+				output.add("Unknown error");
 			}
 		});
 	}
@@ -719,7 +747,7 @@ function TestMenu(experiment, device, rssi)
 		if(devActive)
 			closeDev() ;
 		output.push() ;
-		output.add("Rss - loading Experiment entries.") ;
+		output.add("RSSI Test - loading Experiment entries.") ;
 		
 		var formData = {
 			"table" :	"experiment"
@@ -736,7 +764,7 @@ function TestMenu(experiment, device, rssi)
 				$("#rssLoading2").find("span").addClass("text-warning").removeClass("text-danger") ;
 				temp.find("select").on("change", function(e) {
 					output.push() ;
-					output.add("Rss - loading device data.") ;
+					output.add("RSSI Test - loading Device data.") ;
 					
 					var formData = {
 						"table" :	"device",
@@ -752,11 +780,11 @@ function TestMenu(experiment, device, rssi)
 							$("#rssLoading2").html(data);
 							$("#rssLoading2").find("select").on("change", function(e) {
 								output.push() ;
-								output.add("Rss - loading device date.") ;
+								output.add("RSSI Test - loading Device date.") ;
 								
 								var formData2 = {
 									"table" :	"device",
-									"pick"	:	"asdf",
+									"pick"	:	1,
 									"id"	:	$(this).val()
 								} ;
 								
@@ -769,19 +797,19 @@ function TestMenu(experiment, device, rssi)
 										$("#rssLoading2").append(data);
 									},
 									error: function (jXHR, textStatus, errorThrown) {
-										alert(errorThrown);
+										output.add("Unknown error");
 									}
 								});
 							});
 						},
 						error: function (jXHR, textStatus, errorThrown) {
-							alert(errorThrown);
+							output.add("Unknown error");
 						}
 					});
 				});
 			},
 			error: function (jXHR, textStatus, errorThrown) {
-				alert(errorThrown);
+				output.add("Unknown error");
 			}
 		});
 	}
@@ -799,5 +827,43 @@ function TestMenu(experiment, device, rssi)
 			$("#rssTest").find("select").attr("disabled", false).removeClass("is-valid is-invalid");
 			$("#rssSubmit").addClass("btn-primary").removeClass("btn-secondary btn-success btn-warning btn-danger").html("Submit Entry");
 		}, 1500);
+	}
+}
+
+class ControlMenu {
+	constructor(experiment, device, rssi, restart) {
+		this._exp = $("#" + experiment);
+		this._dev = $("#" + device);
+		this._rss = $("#" + rssi);
+		this._red = $("#" + restart);
+		
+		EventFactory.hoverControl(this._exp);
+		EventFactory.hoverControl(this._dev);
+		EventFactory.hoverControl(this._rss);
+		EventFactory.hoverRed(this._red);
+		EventFactory.clickControl(this._exp, $("#collapseExp"));
+		EventFactory.clickControl(this._dev, $("#collapseDev"));
+		EventFactory.clickControl(this._rss, $("#collapseRss"));
+		EventFactory.clickRed(this._red);
+							
+		this._exp.click(function(e) {
+			if($(this).find("span").length < 1) {
+				output.push();
+				output.add("Loading Scan Locations:");
+				var formData = { "all" : 1 };
+				$.ajax({
+					url : "./php/exp_test.php",
+					type: "POST",
+					data: formData,
+					dataType: "html",
+					success: function (data) {
+						$("#collapseExp div").html(data);
+					},
+					error: function (jXHR, textStatus, errorThrown) {
+						output.add("Unknown error");
+					}
+				});
+			}
+		});
 	}
 }
