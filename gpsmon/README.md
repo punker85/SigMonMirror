@@ -12,8 +12,9 @@ ExecStart=/usr/local/libexec/bluetooth/bluetoothd --compat
 ExecStartPost=/usr/bin/sdptool add --channel=22 SP
 ```
 
-2. Install obexpushd with aptitude
+2. Install dependencies: obexpushd and inotify
 * Open terminal and run `sudo apt-get install obexpushd`
+* Then, run `sudo pip3 install inotify`
 
 3. Run the installation script to install obexpush.service and gpsmon.service units
 * Install using `sh gpsmon-setup.sh`
