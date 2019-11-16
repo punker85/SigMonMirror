@@ -1,7 +1,9 @@
+use sigmon;
 create table if not exists scanner (
 	id tinyint unsigned not null default '0' comment 'Identifier',
     owner char(50) not null default 'John Smith' comment 'Full name',
     model char(50) not null default 'Raspberry Pi' comment 'Device model',
+    mac char(17) not null default 'FF:FF:FF:FF:FF:FF' comment 'MAC address',
     primary key (id)
 ) ;
 
@@ -13,6 +15,7 @@ create table if not exists experiment (
     lat decimal(13,10) not null default '0.0' comment 'Latitude',
     lng decimal(13,10) not null default '0.0' comment 'Longitude',
     primary key(id),
+    constraint time_per_scanner unique (scanner, time_start),
     foreign key(scanner)
 		references scanner(id)
         on delete cascade
@@ -24,6 +27,7 @@ create table if not exists device (
     discovery datetime(0) not null default '1000-01-01 00:00:00' comment 'Initial discovery',
     mac char(17) not null default 'FF:FF:FF:FF:FF:FF' comment 'MAC address',
     primary key(id),
+    constraint single_dev_per_exp unique (experiment, mac),
     foreign key(experiment)
 		references experiment(id)
         on delete cascade
@@ -35,6 +39,7 @@ create table if not exists rssi (
     scan_update time(0) not null default '00:00:00' comment 'RSSI update',
     rssi tinyint not null default '0' comment 'Signal Strength',
     primary key(id),
+    constraint single_dev_rssi_per_ms unique (device, scan_update, rssi),
     foreign key(device)
 		references device(id)
         on delete cascade
