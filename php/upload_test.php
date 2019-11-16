@@ -249,6 +249,24 @@ try {
 						die(json_encode($error));
 					}
 					
+					if(isset($entry->rssi)) {
+						if(!preg_match("/^\-?[0-9]+$/", $entry->rssi)) {
+							$error = [
+								"success" => "fail",
+								"error" => "Rssi",
+								"message" => "Rssi field invalid format: entry " .$i. " (" .$entry->rssi. ")"
+							];
+							die(json_encode($error));
+						}
+					} else {
+						$error = [
+							"success" => "fail",
+							"error" => "Rssi",
+							"message" => "Missing rssi parameter: entry " .$i
+						];
+						die(json_encode($error));
+					}
+					
 					$qstr = "INSERT INTO device (experiment, discovery, mac) VALUES ("
 						.$data->experiment. ",\"" .$datetime. "\",\"" .$entry->mac. "\")";
 					if(!$mysqli->query($qstr)) {
