@@ -16,32 +16,21 @@
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.css"/>
 	
+	<!-- Google Maps API -->
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAy7XIg38gprgX1z6UXqc4wixEOVjWcsas"></script>
+	
 	<!-- Local libraries -->
+	<script type="text/javascript" src="./js/factory.js"></script>
 	<script type="text/javascript" src="./js/support.js"></script>
 	<link type="text/css" href="./css/custom.css" rel="stylesheet" />
 
-	<!-- Google Maps API -->
-	<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAy7XIg38gprgX1z6UXqc4wixEOVjWcsas&callback=initialize"></script>
-
 	<script type="text/javascript">
+	google.maps.event.addDomListener(window, "load", initialize);
 	$(function() {
-	$("#menu-toggle").click( function() { 
-		$("#main-menu").toggleClass("d-none") ; 
-		$("#menu-toggle").toggleClass("btn-danger").toggleClass("btn-outline-primary") ; 
-	});
-	$('#showExp').click(function(e) {	
-		nodes.clear();
-		output.push();
-		output.add("Query sent to Experiment table...");
-		$.ajax({
-			url : $(this).attr('action'),
-			type: "GET",
-			dataType: 'script',
-			error: function (jXHR, textStatus, errorThrown) {
-				alert(errorThrown);
-			}
+		$("#menu-toggle").click( function() { 
+			$("#main-menu").toggleClass("d-none") ; 
+			$("#menu-toggle").toggleClass("btn-danger").toggleClass("btn-outline-primary") ; 
 		});
-	});
 	});
 	</script>
 </head>
@@ -56,12 +45,29 @@
 				</button>
 				</div>
            		<div class="sidebar-nav-fixed affix">
-               	<div class="card card-body bg-light">
-					<div class="btn-group-vertical" role="group" aria-label="First group">
-						<button id="showExp" type="button" action="./php/exp_test.php" class="btn btn-secondary">Show Experiments</button>
-						<button id="showDev" type="button" class="btn btn-secondary">Show Devices</button>
-						<button id="showRssi" type="button" class="btn btn-secondary">Show RSSI</button>
-						<button type="button" class="btn btn-secondary">Extra Button</button>
+               	<div class="card card-body bg-light" style="padding: 0.25rem">
+					<div class="btn-group-vertical" role="group">
+						<button id="showExp" class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#collapseExp">Experiments</button>
+						<div id="collapseExp" class="card w-100 collapse">
+							<div class="card-body text-center" style="padding: 0">
+								<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+								<span class="text-warning">Loading Data.</span>
+							</div>
+						</div>
+						<button id="showDev" class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#collapseDev">Devices</button>
+						<div id="collapseDev" class="card w-100 collapse">
+							<div class="card-body text-center" style="padding: 0">
+								<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+								<span class="text-warning">Loading Data.</span>
+							</div>
+						</div>
+						<button id="showRss" class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#collapseRss">RSSI</button>
+						<div id="collapseRss" class="card w-100 collapse">
+							<div class="card-body text-center" style="padding: 0">
+								<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+								<span class="text-warning">Loading Data.</span>
+							</div>
+						</div>
 					</div>
                	</div>
            		</div>
@@ -71,7 +77,7 @@
         <div class="col-md-8">
 			<!-- Top Menu -->
 			<nav id="main-menu" class="navbar navbar-expand-lg navbar-dark bg-primary d-none">
-				<div id="navbarColor01" class="collapse navbar-collapse col-md-10" >
+				<div id="navbarColor01" class="collapse navbar-collapse container-fluid" >
 					<ul class="navbar-nav mr-auto">
 					<li class="nav-item active">
 						<a class="nav-link" href="#">Home</a>
@@ -86,6 +92,12 @@
 						<a class="nav-link" href="#">About</a>
 					</li>
 					</ul>
+					<div class="card bg-light col-md-2 float-right" style="padding: 0">
+						<button id="showRed" type="button" class="btn btn-block btn-outline-danger">Reset</button>
+					</div>
+					<div class="float-right col-md-3">
+						<input id="passkey" class="form-control" type="password" placeholder="Passkey">
+					</div>
 				</div>
 			</nav>
 			<!-- / Top Menu -->
@@ -97,29 +109,29 @@
 			<!-- / Map Content -->
 			<!-- Message Console -->
 			<div id="output" class="bg-dark text-success">
-				<div class="full-h">
-					<div id="output-margin">
-						<p class="text-right">Console-></p>
+				<div style="height: 100%">
+					<div id="out-left">
+						<p class="text-center">Console</p>
 					</div>
-					<div id="output-main">
-						<div id="output-content">
-							<div id="output-recent">
-							<p id="p-recent" class="text-left">
+					<div id="out-main">
+						<div id="out-cont">
+							<div id="out-new">
+							<p class="text-left">
 							</p></div>
-							<div id="output-history">
-							<p id="p-history" class="text-left text-success">
+							<div id="out-old">
+							<p class="text-left text-success">
 							</p></div>
 						</div>
-						<div id="output-controls" class="rounded-NE">
-							<div id="output-expand" class="btn-square rounded-NE">
+						<div id="out-btn" class="rounded-NE">
+							<div id="out-exp" class="btn-square rounded-NE">
 								<img src="./img/baseline_fullscreen_white_18dp.png" style="vertical-align: top" />
 								<img src="./img/baseline_fullscreen_black_18dp.png" class="d-none" style="vertical-align: top" />
 							</div>
-							<div id="output-minimize" class="btn-square rounded-NE d-none">
+							<div id="out-min" class="btn-square rounded-NE d-none">
 								<img src="./img/baseline_fullscreen_exit_white_18dp.png" style="vertical-align: top" />
 								<img src="./img/baseline_fullscreen_exit_black_18dp.png" class="d-none" style="vertical-align: top" />
 							</div>
-							<div id="output-remove" class="btn-square">
+							<div id="out-rem" class="btn-square">
 								<img src="./img/baseline_close_white_18dp.png" style="vertical-align: top" />
 								<img src="./img/baseline_close_black_18dp.png" class="d-none" style="vertical-align: top" />
 							</div>
@@ -170,11 +182,11 @@
 						</div>
 						<div id="headingTwo" class="card">
 							<h2 class="mb-0">
-								<button id="btn-collapseTwo" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+								<button id="btn-collapseTwo" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo">
 									Device Test Entry
 								</button>
 							</h2>
-							<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+							<div id="collapseTwo" class="collapse" data-parent="#accordionExample">
 								<div class="card-body" style="padding: 0.5rem 0.25rem">
 									<form id="devTest" action="./php/dev_test.php" method="post" autocomplete="off" novalidate>
 										<div id="devLoading" class="form-group" style="margin-bottom: 0.5rem">
@@ -197,11 +209,11 @@
 						</div>
 						<div id="headingThree" class="card">
 							<h2 class="mb-0">
-								<button id="btn-collapseThree" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+								<button id="btn-collapseThree" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseThree">
 									RSSI Test Entry
 								</button>
 							</h2>
-							<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+							<div id="collapseThree" class="collapse" data-parent="#accordionExample">
 								<div class="card-body" style="padding: 0.5rem 0.25rem">
 									<form id="rssTest" action="./php/rss_test.php" method="post" autocomplete="off" novalidate>
 										<div id="rssLoading" class="form-group" style="margin-bottom: 0.5rem">
@@ -237,9 +249,9 @@
     <!--/row-->
 	</div>
 	<!--/.fluid-container-->
-<div id="tooltip" class="tooltip fade bs-tooltip-top d-none" role="tooltip"  style="will-change: transform; position: absolute; transform: translate3d(50vw, 50vh, 0px); top: 0px; left: 0px;" x-placement="top">
-	<div class="arrow" style="left: 45px;"></div>
-	<div class="tooltip-inner">Tooltip on top</div>
+<div id="tooltip" class="tooltip fade bs-tooltip-top d-none" role="tooltip" x-placement="top">
+	<div class="arrow" style="left: calc(50% - 0.4rem);"></div>
+	<div class="tooltip-inner"></div>
 </div>
 </body>
 </html>
