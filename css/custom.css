@@ -154,7 +154,7 @@
   }
 }
 
-html, body {    
+html, body { 
     height:100%;
     margin: 0;
 }
@@ -172,10 +172,7 @@ html, body {
 	background: #555555;
 }
 .top-column {
-	padding-top: 1rem;
-}
-.full-h {
-	height: 100%;
+	padding-top: 0.5rem;
 }
 .btn-square {
 	width: 20px; 
@@ -189,6 +186,46 @@ html, body {
 .timestamp {
 	font-size: 11px;
 }
+.btn.focus,
+.btn:focus {
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+.btn-group-vertical > .btn-outline-secondary:hover {
+	color: #6c757d !important;
+	border-color: #6c757d !important;
+	background-color: transparent !important;
+}
+.btn-group-vertical > .btn-outline-danger:hover {
+	color: #dc3545 !important;
+	border-color: #dc3545 !important;
+	background-color: transparent !important;
+}
+.btn-group-vertical > div {
+	max-height: 25vh;
+	overflow-y: auto;
+	padding-left: 0.25rem;
+}
+.btn-group-vertical > div::-webkit-scrollbar {
+	background-color: transparent !important;
+	width: 0.25rem;
+}
+.btn-group-vertical > div::-webkit-scrollbar-button {
+	background-color: #c8cbcf;
+	width: 0.25rem;
+	height: 0.75rem;
+}
+.btn-group-vertical > div::-webkit-scrollbar-thumb {
+	background-color: #383d41;
+	width: 0.25rem;
+}
+::-webkit-scrollbar-button:vertical:start:increment,
+::-webkit-scrollbar-button:vertical:end:decrement {
+    display: none;
+}
+.list-group-item {
+	padding: 0.5rem !important;
+}
 
 #main-menu {
 	position: absolute;
@@ -199,6 +236,10 @@ html, body {
 	box-sizing: border-box;
 	border: 1px solid #dcdcdc;
 	border-top-style: hidden;
+}
+#map {
+	height: 88vh;
+	border-radius: 0.25rem;
 }
 #output {
 	position: fixed;
@@ -211,7 +252,7 @@ html, body {
 	border-radius: 0.25rem 0.25rem 0 0;
 	padding: 0.25rem 0.25rem 0 0.25rem;
 }
-#output-margin {
+#out-left {
 	width: 15%;
 	font-weight: 600;
 	background: #17202A;
@@ -219,10 +260,10 @@ html, body {
 	height: 100%;
 	float: left;
 }
-#output-margin p {
+#out-left p {
 	margin-right: 0.25rem;
 }
-#output-main {
+#out-main {
 	overflow: hidden;
 	width: calc(85% - 0.25rem); 
 	background: #17202A; 
@@ -232,43 +273,39 @@ html, body {
 	margin-left: 0.25rem; 
 	font-size: 14px;
 }
-#output-content {
+#out-cont {
 	width: calc(100% - 20px); 
 	color: #17202A; 
 	float: left;
 }
-#output-recent {
+#out-new {
 	width: 100%; 
 	height: 3.25rem; 
 	display: block;
 }
-#output-recent p {
+#out-new p {
 	height: calc(100% - 4px); 
 	margin-top: 2px; 
 	margin-bottom: 2px; 
 	margin-left: 0.25rem;
 }
-#output-history {
+#out-old {
 	position: relative;
 	overflow-y: auto;
 	height: calc(50vh - 3.75rem);
 	width: calc(100% + 19px); 
 	display: block;
 }
-#output-history p {
+#out-old p {
 	margin-top: 2px; 
 	margin-bottom: 2px; 
 	margin-left: 0.25rem;
 }
-#output-controls {
+#out-btn {
 	height: 100%; 
 	width: 20px;
 }
-#map {
-	height: 540px;
-	border-radius: 0.25rem;
-}
-#output-recent:after {
+#out-new:after {
     content: '';
     display: block;
 	margin-left: auto;
@@ -276,4 +313,8 @@ html, body {
     width: 99%;
     top: 3.5rem;
     border-top: 1px solid #dcdcdc;
+}
+#tooltip {
+	position: absolute;
+	z-index: 1070;
 }
