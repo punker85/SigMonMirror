@@ -15,6 +15,9 @@ import logging
 
 FOLDER = "/home/pi/btmon_output"
 INPUT = "/home/pi/btmon_output.txt"
+DATETIME = datetime.datetime.now().strftime("%b%d-%H%M")
+SQLTIME = datetime.datetime.now().strftime("%Y-%d-%m %H:%M:%S")
+OUTPUT = DATETIME + ".txt"
 LAT = "/var/gps/lat"
 LNG = "/var/gps/lng"
 
@@ -63,7 +66,7 @@ def stop_scan():
 
 def sort_output():
     try:
-        btsort = subprocess.Popen("sort -k 4 " +INPUT+ " | uniq > " +FOLDER+ "/" +datetime.datetime.now().strftime("%b%d-%H%M")+ ".txt", shell=True, stdout=subprocess.DEVNULL)
+        btsort = subprocess.Popen("sort -k 4 " +INPUT+ " | uniq > " +FOLDER+ "/" +OUTPUT, shell=True, stdout=subprocess.DEVNULL)
         try:
             btsort.wait(10)
         except TimeoutExpired:
@@ -74,10 +77,31 @@ def sort_output():
             btsort.kill()
         logging.info("sort error: {}".format(type(e).__name__))
 
+def prepend_gps():
+    try:
+        with open(FOLDER+ "/gps-" +OUTPUT, "w") as out:
+            out.write("time " +SQLTIME+ "\n")
+            with open(LAT, "r") as lat:
+                val = lat.readline()
+                out.write("lat " +val)
+                lat.close()
+            with open(LNG, "r") as lng:
+                val = lng.readline()
+                out.write("lng " +val)
+                lng.close()
+            with open(FOLDER+ "/" +OUTPUT, "r") as input:
+                for line in input:
+                    out.write(line)
+                input.close()
+            out.close()
+    except Exception as e:
+        logging.info("File write error: {0}, Value: {1}".format(type(e).__name__, value))
+
 def handle_signal(sig, frame):
     try:
         stop_scan()
         sort_output()
+        prepend_gps()
     except Exception as e:
         logging.info("Signal handler error: {}".format(type(e).__name__))
     time.sleep(0.25)
