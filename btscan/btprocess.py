@@ -26,11 +26,45 @@ LOG_LEVEL = logging.INFO
 LOG_FILE = "/var/log/syslog"
 LOG_FORMAT = "%(asctime)s %(levelname)s [%(module)s] %(message)s"
 
-def construct_json_entries(array, index, length):
-    a = 0
+def construct_json_entries(array, index, offset):
+    json_list = []
+    length = index + offset
+    while index < length:
+        values = array[index].split("|")
+        addr = values[0].split()
+        sstr = values[1].split()
+        dtime = values[2].split()
+        json_list.append({
+            "mac" : addr[0],
+            "datetime" : dtime[0]+ " " +dtime[1],
+            "rssi" : sstr[0]
+            })
+        index += 1
+    return json_list
     
-def request_chunk_entries(json_array, auth, experiment):
-    a = 0
+def request_chunk_entries(json_list, auth, experiment):
+    json_data = {
+        "auth" : auth,
+        "experiment" : experiment,
+        "entries" : json_list
+    }
+    header = {
+        "Content-type": "application/json; charset=UTF-8"
+    }
+    req = requests.post(WEBSITE + SCRIPT, json=json_data, headers=header)
+    if(req.status_code != 200):
+        print("\n    ERROR: Response not successful (" +str(req.status_code)+ ")")
+        exit("\nProgram aborted due to HTTP error")
+    resp = req.json()
+    if(resp["success"] == "fail"):
+        print("\n        * ERROR [" +resp["error"]+ "]\n          " +resp["message"])
+    if(resp["success"] == "ok"):
+        dupes = 0
+        for mac in resp["macs"]:
+            if(mac == "duplicate"):
+                dupes += 1
+        print("        * SUCCESS Entries inserted: " +str(resp["length"] - dupes)+ ", Duplicates: " +str(dupes))
+    
 
 def handle_signal(sig, frame):
     try:
@@ -195,11 +229,13 @@ if __name__ == "__main__":
         
         while index < length:
             entries = None
+            print("      *** Preparing JSON for data chunk " +str(index//CHUNK_SIZE+1)+ " out of " +str(length//CHUNK_SIZE if length%CHUNK_SIZE==0 else length//CHUNK_SIZE+1))
             if((index + CHUNK_SIZE) > length):
                 entries = construct_json_entries(rssi, index, length - index)
             else:
                 entries = construct_json_entries(rssi, index, CHUNK_SIZE)
-            request_chunk_entries(entries)
+            print("       ** Sending JSON data as " +str(len(entries))+ " entries to server")
+            request_chunk_entries(entries, pkey, experiment)
             index += CHUNK_SIZE
             
         f.close()
