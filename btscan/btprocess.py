@@ -7,7 +7,7 @@ import os
 import signal
 import io
 import subprocess
-import datetime
+from datetime import datetime
 import time
 import sys
 import re
@@ -33,10 +33,19 @@ def construct_json_entries(array, index, offset):
         values = array[index].split("|")
         addr = values[0].split()
         sstr = values[1].split()
-        dtime = values[2].split()
+        dtime = values[2]
+        if(re.match("\040[a-z]{3}\040[a-z]{3}", dtime, re.I) is None):
+            dtime = dtime.split()
+            dtime = dtime[0]+ " " +dtime[1]
+        else:
+            dtime = values[2]
+            date = '-'.join([dtime[21:25], dtime[5:8], dtime[9:11]])
+            date = date + ' ' + dtime[12:20]
+            dtime = datetime.strptime(date, '%Y-%b-%d %H:%M:%S')
+        
         json_list.append({
             "mac" : addr[0],
-            "datetime" : dtime[0]+ " " +dtime[1],
+            "datetime" : str(dtime),
             "rssi" : sstr[0]
             })
         index += 1
@@ -57,13 +66,13 @@ def request_chunk_entries(json_list, auth, experiment):
         exit("\nProgram aborted due to HTTP error")
     resp = req.json()
     if(resp["success"] == "fail"):
-        print("\n        * ERROR [" +resp["error"]+ "]\n          " +resp["message"])
+        print("        * ERROR [" +resp["error"]+ "]\n          " +resp["message"]+ "\n")
     if(resp["success"] == "ok"):
         dupes = 0
         for mac in resp["macs"]:
             if(mac == "duplicate"):
                 dupes += 1
-        print("        * SUCCESS Entries inserted: " +str(resp["length"] - dupes)+ ", Duplicates: " +str(dupes))
+        print("        * SUCCESS Entries inserted: " +str(resp["length"] - dupes)+ ", Duplicates: " +str(dupes)+ "\n")
     
 
 def handle_signal(sig, frame):
