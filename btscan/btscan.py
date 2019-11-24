@@ -16,7 +16,7 @@ import logging
 FOLDER = "/home/pi/btmon_output"
 INPUT = "/home/pi/btmon_output.txt"
 DATETIME = datetime.datetime.now().strftime("%b%d-%H%M")
-SQLTIME = datetime.datetime.now().strftime("%Y-%d-%m %H:%M:%S")
+SQLTIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 OUTPUT = DATETIME + ".txt"
 LAT = "/var/gps/lat"
 LNG = "/var/gps/lng"
