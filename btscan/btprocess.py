@@ -12,6 +12,8 @@ import time
 import sys
 import re
 import requests
+from requests.adapters import HTTPAdapter
+from requests.exceptions import ConnectionError
 import json
 import logging
 from optparse import OptionParser
@@ -20,7 +22,7 @@ FOLDER = os.path.abspath(__file__)
 PROGRESS = "/in.progress"
 WEBSITE = "https://www.btsigmon.com"
 SCRIPT = "/php/upload_test.php"
-CHUNK_SIZE = 20
+CHUNK_SIZE = 500
 
 LOG_LEVEL = logging.INFO
 LOG_FILE = "/var/log/syslog"
@@ -51,7 +53,7 @@ def construct_json_entries(array, index, offset):
         index += 1
     return json_list
     
-def request_chunk_entries(json_list, auth, experiment):
+def request_chunk_entries(session, json_list, auth, experiment):
     json_data = {
         "auth" : auth,
         "experiment" : experiment,
@@ -60,7 +62,7 @@ def request_chunk_entries(json_list, auth, experiment):
     header = {
         "Content-type": "application/json; charset=UTF-8"
     }
-    req = requests.post(WEBSITE + SCRIPT, json=json_data, headers=header)
+    req = session.post(WEBSITE + SCRIPT, json=json_data, headers=header, verify=True, timeout=(5, 10))
     if(req.status_code != 200):
         print("\n    ERROR: Response not successful (" +str(req.status_code)+ ")")
         exit("\nProgram aborted due to HTTP error")
@@ -72,8 +74,7 @@ def request_chunk_entries(json_list, auth, experiment):
         for mac in resp["macs"]:
             if(mac == "duplicate"):
                 dupes += 1
-        print("        * SUCCESS Entries inserted: " +str(resp["length"] - dupes)+ ", Duplicates: " +str(dupes)+ "\n")
-    
+        print("        * SUCCESS Entries inserted: " +str(resp["length"] - dupes)+ ", Duplicates: " +str(dupes)+ "\n")    
 
 def handle_signal(sig, frame):
     try:
@@ -91,6 +92,7 @@ if __name__ == "__main__":
     parser.add_option("-L", "--lng", action="store", dest="lng", help="GPS Longitude of scanning device")
     parser.add_option("-p", "--pkey", action="store", dest="pkey", help="Passkey for database insertion from PHP")
     parser.add_option("-q", "--quiet", action="store_false", dest="verbose", default=True, help="Disable console output")
+    parser.add_option("-c", "--chunk", action="store", dest="chunk", default=0, help="Chunk number to start with in case of previous error")
     (options, args) = parser.parse_args()
 
     name = "Default Location"
@@ -220,8 +222,8 @@ if __name__ == "__main__":
         exit("\n    ERROR [" +resp["error"]+ "] " +resp["message"])
     if(resp["success"] == "ok"):
         experiment = resp["experiment"]
-        print("    - Experiment entry succeeded with ID " +str(experiment))
         if(options.verbose):
+            print("    - Experiment entry succeeded with ID " +str(experiment))
             print("           Name -> " +resp["name"])
             print("       Datetime -> " +resp["datetime"])
             print("            MAC -> " +resp["mac"])
@@ -232,19 +234,26 @@ if __name__ == "__main__":
     with open(sys.argv[1], "r") as f:
         rssi = f.readlines()
         length = len(rssi)
-        index = 3
+        index = 3 + (int(options.chunk) * CHUNK_SIZE)
         
         print("    - Entries to process: " +str(length - index))
         
+        session = requests.Session()
         while index < length:
             entries = None
-            print("      *** Preparing JSON for data chunk " +str(index//CHUNK_SIZE+1)+ " out of " +str(length//CHUNK_SIZE if length%CHUNK_SIZE==0 else length//CHUNK_SIZE+1))
+            if(options.verbose):
+                print("      *** Preparing JSON for data chunk " +str(index//CHUNK_SIZE+1)+ " out of " +str(length//CHUNK_SIZE if length%CHUNK_SIZE==0 else length//CHUNK_SIZE+1))
             if((index + CHUNK_SIZE) > length):
                 entries = construct_json_entries(rssi, index, length - index)
             else:
                 entries = construct_json_entries(rssi, index, CHUNK_SIZE)
-            print("       ** Sending JSON data as " +str(len(entries))+ " entries to server")
-            request_chunk_entries(entries, pkey, experiment)
-            index += CHUNK_SIZE
+            if(options.verbose):
+                print("       ** Sending JSON data as " +str(len(entries))+ " entries to server")
+            try:
+                request_chunk_entries(session, entries, pkey, experiment)
+                index += CHUNK_SIZE
+            except Exception as e:
+                print("\n       -> " +type(e).__name__+ " Exception, RETRYING AFTER 60 SECONDS\n")
+                time.sleep(60)
             
         f.close()
