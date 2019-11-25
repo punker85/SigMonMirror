@@ -162,7 +162,7 @@ html, body {
 	margin-right: 0.75rem;
 }
 .rainbow span {
-	animation: rainbow 3s infinite;
+	animation: rainbow 4s infinite;
 }
 .menu-toggle {
 	margin-bottom: 0.5rem;
@@ -202,7 +202,7 @@ html, body {
 	background-color: transparent !important;
 }
 .btn-group-vertical > div {
-	max-height: 25vh;
+	max-height: 30vh;
 	overflow-y: auto;
 	padding-left: 0.25rem;
 }
@@ -224,7 +224,36 @@ html, body {
     display: none;
 }
 .list-group-item {
-	padding: 0.5rem !important;
+	padding: 0.3rem !important;
+}
+.nav-link {
+	color: #555555 !important;
+}
+.nav-link:hover {
+	color: #f8f9fa !important;
+	background-color: #555555 !important;
+}
+.nav-link.active {
+	color: #f8f9fa !important;
+	background-color: #dc3545 !important;
+	font-weight: bold !important;
+}
+.tab-pane {
+	max-height: 85vh;
+	overflow-y: auto;
+}
+.tab-pane::-webkit-scrollbar {
+	background-color: transparent !important;
+	width: 0.25rem;
+}
+.tab-pane::-webkit-scrollbar-button {
+	background-color: #c8cbcf;
+	width: 0.25rem;
+	height: 0.75rem;
+}
+.tab-pane::-webkit-scrollbar-thumb {
+	background-color: #dc3545;
+	width: 0.25rem;
 }
 
 #main-menu {
@@ -317,4 +346,8 @@ html, body {
 #tooltip {
 	position: absolute;
 	z-index: 1070;
+}
+#passkey:focus {
+	border-color: #d9534f;
+	box-shadow: 0 0 0 0.2rem rgba(217, 83, 79, 0.5);
 }
