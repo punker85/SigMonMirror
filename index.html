@@ -29,7 +29,7 @@
 	$(function() {
 		$("#menu-toggle").click( function() { 
 			$("#main-menu").toggleClass("d-none") ; 
-			$("#menu-toggle").toggleClass("btn-danger").toggleClass("btn-outline-primary") ; 
+			$("#menu-toggle").toggleClass("btn-danger").toggleClass("btn-outline-dark") ; 
 		});
 	});
 	</script>
@@ -40,7 +40,7 @@
 		<!-- Left Column -->
         <div class="col-md-2">
 				<div class="card menu-toggle">
-				<button id="menu-toggle" class="btn btn-outline-primary" type="button">
+				<button id="menu-toggle" class="btn btn-outline-dark" type="button">
 					Menu
 				</button>
 				</div>
@@ -76,24 +76,24 @@
 		<!-- Middle Column -->
         <div class="col-md-8">
 			<!-- Top Menu -->
-			<nav id="main-menu" class="navbar navbar-expand-lg navbar-dark bg-primary d-none">
+			<nav id="main-menu" class="navbar navbar-expand-lg navbar-dark bg-dark d-none">
 				<div id="navbarColor01" class="collapse navbar-collapse container-fluid" >
 					<ul class="navbar-nav mr-auto">
 					<li class="nav-item active">
-						<a class="nav-link" href="#">Home</a>
+						<a class="nav-link" href="#">No</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#">Features</a>
+						<a class="nav-link" href="#">More</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#">Pricing</a>
+						<a class="nav-link" href="#">Useless</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#">About</a>
+						<a class="nav-link" href="#">Things</a>
 					</li>
 					</ul>
 					<div class="card bg-light col-md-2 float-right" style="padding: 0">
-						<button id="showRed" type="button" class="btn btn-block btn-outline-danger">Reset</button>
+						<button id="showRed" type="button" class="btn btn-block btn-outline-danger"><b>Reset</b></button>
 					</div>
 					<div class="float-right col-md-3">
 						<input id="passkey" class="form-control" type="password" placeholder="Passkey">
@@ -145,100 +145,121 @@
 		<!-- Right Column -->
     	<div class="col-md-2 top-column">
 			<div class="sidebar-nav-fixed pull-right affix">
-               	<div class="card card-body bg-light" style="padding: 0.25rem">
-               		<div id="accordionExample" class="accordion">
-						<div id="headingOne" class="card">
-							<h2 class="mb-0">
-								<button id="btn-collapseOne" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseOne">
-									Experiment Test Entry
-								</button>
-							</h2>
-							<div id="collapseOne" class="collapse" data-parent="#accordionExample">
-								<div class="card-body" style="padding: 0.5rem 0.25rem">
-									<form id="expTest" action="./php/exp_test.php" method="post" autocomplete="off" novalidate>
-										<div id="expLoading" class="form-group" style="margin-bottom: 0.5rem">
-											<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
-											<span class="text-warning">Loading Scanners...</span>
-										</div>
-										<div class="form-group" style="margin-bottom: 0.5rem">
-											<input id="expPlace" class="form-control" type="text" name="place" placeholder="Place" required>
-										</div>
-									    <div class="form-group" style="margin-bottom: 0.5rem">
-											<input id="expDate" class="form-control" type="text" name="date" placeholder="MM/DD/YYYY" required>
-									    </div>
-										<div class="form-group" style="margin-bottom: 0.5rem">
-											<input id="expTime" class="form-control" type="time" name="time" step="1" placeholder="00:00:00" required>
-									    </div>
-										<div class="form-group" style="margin-bottom: 0.5rem">
-											<span>Lat:</span><input id="expLat" class="form-control" type="text" name="lat" placeholder="0.0" readonly required>
-									    </div>
-										<div class="form-group" style="margin-bottom: 0.5rem">
-											<span>Lng:</span><input id="expLng" class="form-control" type="text" name="lng" placeholder="0.0" readonly required>
-										</div>
-										<button id="expSubmit" type="submit" class="btn btn-primary">Submit Entry</button>
-									</form>
+               	<div class="card card-body bg-light" style="padding: 0">
+				<ul id="infoTabs" class="nav nav-tabs" role="tablist">
+					<li class="nav-item">
+						<a id="expTab" class="nav-link" style="padding: 0.5rem" data-toggle="tab" href="#experiment" role="tab">Exp</a>
+					</li>
+					<li class="nav-item">
+						<a id="devTab" class="nav-link" style="padding: 0.5rem" data-toggle="tab" href="#device" role="tab">Dev</a>
+					</li>
+					<li class="nav-item">
+						<a id="rssTab" class="nav-link" style="padding: 0.5rem" data-toggle="tab" href="#rssi" role="tab">Rssi</a>
+					</li>
+					<li class="nav-item">
+						<a id="admTab" class="nav-link active" style="padding: 0.5rem" data-toggle="tab" href="#admin" role="tab">Adm</a>
+					</li>
+				</ul>
+				<div id="infoDivs" class="tab-content">
+					<div id="experiment" class="tab-pane fade" role="tabpanel"><ul class="list-group"></ul></div>
+					<div id="device" class="tab-pane fade" role="tabpanel"><ul class="list-group"></ul></div>
+					<div id="rssi" class="tab-pane fade" role="tabpanel"><ul class="list-group"></ul></div>
+					<div id="admin" class="tab-pane fade show active" role="tabpanel">
+						<div id="accordionExample" class="accordion">
+							<div id="headingOne" class="card">
+								<h2 class="mb-0">
+									<button id="btn-collapseOne" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseOne">
+										Experiment Test Entry
+									</button>
+								</h2>
+								<div id="collapseOne" class="collapse" data-parent="#accordionExample">
+									<div class="card-body" style="padding: 0.5rem 0.25rem">
+										<form id="expTest" action="./php/exp_test.php" method="post" autocomplete="off" novalidate>
+											<div id="expLoading" class="form-group" style="margin-bottom: 0.5rem">
+												<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+												<span class="text-warning">Loading Scanners...</span>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<input id="expPlace" class="form-control" type="text" name="place" placeholder="Place" required>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<input id="expDate" class="form-control" type="text" name="date" placeholder="MM/DD/YYYY" required>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<input id="expTime" class="form-control" type="time" name="time" step="1" placeholder="00:00:00" required>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<span>Lat:</span><input id="expLat" class="form-control" type="text" name="lat" placeholder="0.0" readonly required>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<span>Lng:</span><input id="expLng" class="form-control" type="text" name="lng" placeholder="0.0" readonly required>
+											</div>
+											<button id="expSubmit" type="submit" class="btn btn-primary">Submit Entry</button>
+										</form>
+									</div>
 								</div>
 							</div>
-						</div>
-						<div id="headingTwo" class="card">
-							<h2 class="mb-0">
-								<button id="btn-collapseTwo" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo">
-									Device Test Entry
-								</button>
-							</h2>
-							<div id="collapseTwo" class="collapse" data-parent="#accordionExample">
-								<div class="card-body" style="padding: 0.5rem 0.25rem">
-									<form id="devTest" action="./php/dev_test.php" method="post" autocomplete="off" novalidate>
-										<div id="devLoading" class="form-group" style="margin-bottom: 0.5rem">
-											<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
-											<span class="text-warning">Loading Experiments...</span>
-										</div>
-										<div class="form-group" style="margin-bottom: 0.5rem">
-											<input id="devMac" class="form-control" type="text" name="mac" placeholder="MAC Address" required>
-										</div>
-									    <div class="form-group" style="margin-bottom: 0.5rem">
-											<input id="devDate" class="form-control" type="text" name="date" placeholder="MM/DD/YYYY" readonly required>
-									    </div>
-										<div class="form-group" style="margin-bottom: 0.5rem">
-											<input id="devTime" class="form-control" type="time" name="time" step="1" placeholder="00:00:00" required>
-									    </div>
-										<button id="devSubmit" type="submit" class="btn btn-primary">Submit Entry</button>
-									</form>
+							<div id="headingTwo" class="card">
+								<h2 class="mb-0">
+									<button id="btn-collapseTwo" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo">
+										Device Test Entry
+									</button>
+								</h2>
+								<div id="collapseTwo" class="collapse" data-parent="#accordionExample">
+									<div class="card-body" style="padding: 0.5rem 0.25rem">
+										<form id="devTest" action="./php/dev_test.php" method="post" autocomplete="off" novalidate>
+											<div id="devLoading" class="form-group" style="margin-bottom: 0.5rem">
+												<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+												<span class="text-warning">Loading Experiments...</span>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<input id="devMac" class="form-control" type="text" name="mac" placeholder="MAC Address" required>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<input id="devDate" class="form-control" type="text" name="date" placeholder="MM/DD/YYYY" readonly required>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<input id="devTime" class="form-control" type="time" name="time" step="1" placeholder="00:00:00" required>
+											</div>
+											<button id="devSubmit" type="submit" class="btn btn-primary">Submit Entry</button>
+										</form>
+									</div>
 								</div>
 							</div>
-						</div>
-						<div id="headingThree" class="card">
-							<h2 class="mb-0">
-								<button id="btn-collapseThree" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseThree">
-									RSSI Test Entry
-								</button>
-							</h2>
-							<div id="collapseThree" class="collapse" data-parent="#accordionExample">
-								<div class="card-body" style="padding: 0.5rem 0.25rem">
-									<form id="rssTest" action="./php/rss_test.php" method="post" autocomplete="off" novalidate>
-										<div id="rssLoading" class="form-group" style="margin-bottom: 0.5rem">
-											<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
-											<span class="text-warning">Loading Experiments...</span>
-										</div>
-										<div id="rssLoading2" class="form-group" style="margin-bottom: 0.5rem">
-											<span class="spinner-border spinner-border-sm text-danger" role="status"></span>
-											<span class="text-danger">Waiting...</span>
-										</div>
-									    <div class="form-group" style="margin-bottom: 0.5rem">
-											<input id="rssDate" class="form-control" type="text" name="date" placeholder="MM/DD/YYYY" readonly required>
-									    </div>
-										<div class="form-group" style="margin-bottom: 0.5rem">
-											<input id="rssTime" class="form-control" type="time" name="time" step="1" placeholder="00:00:00" required>
-									    </div>
-										<div class="form-group" style="margin-bottom: 0.5rem">
-											<input id="rssRssi" class="form-control" type="text" name="rssi" placeholder="RSSI" required>
-										</div>
-										<button id="rssSubmit" type="submit" class="btn btn-primary">Submit Entry</button>
-									</form>
+							<div id="headingThree" class="card">
+								<h2 class="mb-0">
+									<button id="btn-collapseThree" class="btn btn-secondary btn-block collapsed" type="button" data-toggle="collapse" data-target="#collapseThree">
+										RSSI Test Entry
+									</button>
+								</h2>
+								<div id="collapseThree" class="collapse" data-parent="#accordionExample">
+									<div class="card-body" style="padding: 0.5rem 0.25rem">
+										<form id="rssTest" action="./php/rss_test.php" method="post" autocomplete="off" novalidate>
+											<div id="rssLoading" class="form-group" style="margin-bottom: 0.5rem">
+												<span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+												<span class="text-warning">Loading Experiments...</span>
+											</div>
+											<div id="rssLoading2" class="form-group" style="margin-bottom: 0.5rem">
+												<span class="spinner-border spinner-border-sm text-danger" role="status"></span>
+												<span class="text-danger">Waiting...</span>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<input id="rssDate" class="form-control" type="text" name="date" placeholder="MM/DD/YYYY" readonly required>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<input id="rssTime" class="form-control" type="time" name="time" step="1" placeholder="00:00:00" required>
+											</div>
+											<div class="form-group" style="margin-bottom: 0.5rem">
+												<input id="rssRssi" class="form-control" type="text" name="rssi" placeholder="RSSI" required>
+											</div>
+											<button id="rssSubmit" type="submit" class="btn btn-primary">Submit Entry</button>
+										</form>
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
+				</div>
                 </div>
                 <!--/.well -->
             </div>
