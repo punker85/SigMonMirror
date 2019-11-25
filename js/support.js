@@ -1,5 +1,5 @@
 var centerLat = 29.648612, centerLng = -82.343504;
-var map, output, testmenu, nodes, control;
+var map, output, testmenu, nodes, devices, control;
 	
 function initialize() {
 	output = new Output("output", "out-exp", "out-min", "out-rem");
@@ -94,12 +94,20 @@ function initialize() {
 	  styles: style,
 	  zoom: 18
 	});
-	output.add("Google Maps API loaded and ready");
-	output.timestamp();
+	output.add("Google Maps API loaded and ready.");
 	
 	testmenu = new TestMenu("expTest", "devTest", "rssTest");
-	nodes = new Nodes();
+	nodes = {};
+	devices = {};
 	control = new ControlMenu("showExp", "showDev", "showRss", "showRed");
+	cpanel = new ContentPanel();
+	setTimeout(function() {cpanel.select("rssi");}, 1500);
+	setTimeout(function() {cpanel.select("device");}, 1600);
+	setTimeout(function() {cpanel.select("experiment");}, 1700);
+	setTimeout(function() {cpanel.select("device");}, 1800);
+	setTimeout(function() {cpanel.select("rssi");}, 1900);
+	setTimeout(function() {cpanel.select("admin");}, 2000);
+	setTimeout(function() {output.add("Content panel ready.");output.timestamp();}, 2100);
 }
 
 class MapTooltip extends google.maps.OverlayView {
@@ -146,7 +154,7 @@ class Output {
 			let chars = $.trim(html).split("");
 			let word = "<span>";
 			for(i = 0; i < chars.length; i++)
-				word += chars[i] + "</span><span style=\"animation-delay: " +.01*i+ "s\">";
+				word += chars[i] + "</span><span style=\"animation-delay: " +.02*i+ "s\">";
 			word += "</span>";
 			return word;
 		});
@@ -211,12 +219,14 @@ class Nodes {
 }
 
 class Node {
-	constructor(map, id, place, latitude, longitude) {
+	constructor(map, id, place, latitude, longitude, params={}) {
 		this.map = map;
 		this.id = id;
 		this.place = place;
 		this.latitude = latitude;
 		this.longitude = longitude;
+		this.params = params;
+		this.listener = null;
 		let icon = {
 			url: "./img/icons8-raspberry-pi-16.png",
 			size: new google.maps.Size(16, 16),
@@ -235,7 +245,7 @@ class Node {
 					fillColor: "#fbfbfb",
 					fillOpacity: 0.2,
 					center: this.marker.position,
-					radius: 12
+					radius: 10
 		});
 		let tool = this.tooltip;
 		this.marker.addListener("mouseover", function() {
@@ -251,23 +261,26 @@ class Node {
 		this.tooltip.setMap(null);
 		this.coverage.setMap(null);
 	}
-	draw() {
+	draw(panable=true) {
 		let m = this.marker;
 		let c = this.coverage;
 		if(!m.getMap()) {
-			map.setZoom(19);
-			c.setOptions({strokeOpacity: 0.9, fillOpacity: 0.2});
-			setTimeout(function(){map.panTo(m.position);}, 300);
-			setTimeout(function(){map.setZoom(20);}, 600);
-			setTimeout(function(){m.setMap(map);c.setMap(map);}, 900);
+			map.setZoom(18);
+			c.setOptions({strokeOpacity: 0.8, fillOpacity: 0.3});
+			if(panable) 
+				setTimeout(function(){map.panTo(m.position);}, 500);
+			setTimeout(function(){m.setMap(map);c.setMap(map);}, 1000);
 		} else {
-			setTimeout(function(){map.panTo(m.position);}, 200);
-			setTimeout(function(){map.setZoom(20);}, 500);
-			setTimeout(function(){c.setOptions({strokeOpacity: 0.7});}, 800);
-			setTimeout(function(){c.setOptions({strokeOpacity: 0.5, fillOpacity: 0.1});}, 900);
-			setTimeout(function(){c.setOptions({strokeOpacity: 0.3});}, 1000);
-			setTimeout(function(){c.setOptions({strokeOpacity: 0.1, fillOpacity: 0});}, 1100);
-			setTimeout(function(){m.setMap(null);c.setMap(null);}, 1200);
+			setTimeout(function(){map.panTo(m.position);}, 100);
+			setTimeout(function(){map.setZoom(20);}, 600);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.7});}, 1000);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.6});}, 1050);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.5, fillOpacity: 0.2});}, 1100);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.4});}, 1150);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.3, fillOpacity: 0.1});}, 1200);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.2});}, 1250);
+			setTimeout(function(){c.setOptions({strokeOpacity: 0.1, fillOpacity: 0});}, 1300);
+			setTimeout(function(){m.setMap(null);c.setMap(null);}, 1350);
 		}
 	}	
 }
@@ -865,5 +878,76 @@ class ControlMenu {
 				});
 			}
 		});
+	}
+}
+
+class ContentPanel {
+	constructor() {
+		this.links = $("#infoTabs li a");
+		this.panels = $("#infoDivs .tab-pane");
+	}
+	
+	select(tab) {
+		this.links.removeClass("active");
+		this.panels.removeClass("show active");
+		if(tab == "experiment") {
+			$("#expTab").addClass("active");
+			$("#experiment").addClass("show active");
+		}
+		if(tab == "device") {
+			$("#devTab").addClass("active");
+			$("#device").addClass("show active");
+		}
+		if(tab == "rssi") {
+			$("#rssTab").addClass("active");
+			$("#rssi").addClass("show active");
+		}
+		if(tab == "admin") {
+			$("#admTab").addClass("active");
+			$("#admin").addClass("show active");
+		}
+	}
+	
+	add(tab, params={}) {
+		if(tab == "experiment") {
+			let html = "<li class=\"list-group-item\" style=\"padding: 0 !important;\"><div class=\"card bg-dark\">"+
+						"<div class=\"card-body\" style=\"padding: 0.5rem\">"+
+						"<h5 class=\"card-title bg-light text-dark\" style=\"margin-bottom: 0.5rem; padding: 0.25rem; border-radius: 0.25rem\">" +(params.name ? params.name : "Missing Title")+ "</h5>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">Total devices: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +(params.devs ? params.devs : "N/A")+ "</p>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">Total samples: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +(params.samps ? params.samps : "N/A")+ "</p>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">Total time: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +(params.time ? params.time : "N/A")+ "</p>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">Avg. Samples per Second: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +(params.sps ? params.sps : "N/A")+ "</p>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">RSSI Range: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +((params.low && params.high) ? (params.low+" to "+params.high) : "N/A")+ "</p>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">RSSI Mean / Median: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +((params.mean && params.median) ? (params.mean+" / "+params.median) : "N/A")+ "</p>"+
+						"</div></div></li>";
+			let parse = $.parseHTML(html);
+			$("#experiment ul").prepend(parse);
+		}
+		if(tab == "device") {
+			let html = "<li class=\"list-group-item\" style=\"padding: 0 !important;\"><div class=\"card bg-dark\">"+
+						"<div class=\"card-body\" style=\"padding: 0.5rem\">"+
+						"<h5 class=\"card-title bg-light text-dark\" style=\"margin-bottom: 0.5rem; padding: 0.25rem; border-radius: 0.25rem\">" +(params.mac ? params.mac : "Missing MAC")+ "</h5>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">Total samples: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +(params.samps ? params.samps : "N/A")+ "</p>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">Total time: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +(params.time ? params.time : "N/A")+ "</p>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">Avg. Samples per Minute: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +(params.spm ? params.spm : "N/A")+ "</p>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">RSSI Range: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +((params.low && params.high) ? (params.low+" to "+params.high) : "N/A")+ "</p>"+
+						"<p class=\"card-text text-left text-light\" style=\"margin-bottom: 0; font-weight: bold\">RSSI Mean / Median: </p>"+
+						"<p class=\"card-text text-right text-light\" style=\"margin-bottom: 0.25rem\">" +((params.mean && params.median) ? (params.mean+" / "+params.median) : "N/A")+ "</p>"+
+						"</div></div></li>";
+			let parse = $.parseHTML(html);
+			$("#device ul").prepend(parse);
+		}
+		if(tab == "rssi") {
+		}
 	}
 }
