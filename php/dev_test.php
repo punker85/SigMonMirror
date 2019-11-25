@@ -1,4 +1,87 @@
 <?php
+function tab_content_dev(mysqli &$conn, string $database, int $device) {
+	$params = "{";
+	$samples = 0;
+	$query = "SELECT mac FROM " .$database. ".device WHERE id = " .$device;
+	if(!($rslt = $conn->query($query))) {
+		echo "<script>output.add(\"MySQL Error: " .$conn->error. "\");" 
+			."output.timestamp() ;</script>";
+	} else {
+		$params .= "mac: \"" .$rslt->fetch_assoc()["mac"]. "\",";
+	}
+	$rslt->free();
+	$query = "select count(*) as sum from " .$database. ".device a inner join rssi b on a.id = b.device where a.id = " .$device;
+	if(!($rslt = $conn->query($query))) {
+		echo "<script>output.add(\"MySQL Error: " .$mysqli->error. "\");" 
+			."output.timestamp() ;</script>";
+	} else {
+		$samples = $rslt->fetch_assoc()["sum"];
+		$params .= "samps: \"" .$samples. "\",";
+	}
+	$rslt->free();
+	$query = "select TIMEDIFF(MAX(b.scan_update), MIN(b.scan_update)) AS diff from " .$database. ".device a inner join rssi b on a.id = b.device where a.id = " .$device;
+	if(!($rslt = $conn->query($query))) {
+		echo "<script>output.add(\"MySQL Error: " .$mysqli->error. "\");" 
+			."output.timestamp() ;</script>";
+	} else {
+		$params .= "time: \"" .$rslt->fetch_assoc()["diff"]. "\",";
+	}
+	$rslt->free();
+	$query = "select TIME_TO_SEC(TIMEDIFF(MAX(b.scan_update), MIN(b.scan_update))) AS secs from " .$database. ".device a inner join rssi b on a.id = b.device where a.id = " .$device;
+	if(!($rslt = $conn->query($query))) {
+		echo "<script>output.add(\"MySQL Error: " .$mysqli->error. "\");" 
+			."output.timestamp() ;</script>";
+	} else {
+		$secs = $rslt->fetch_assoc()["secs"];
+		if($secs == 0)
+			$secs = 1;
+		$params .= "spm: \"" .round($samples/$secs*60, 3). "\",";
+	}
+	$rslt->free();
+	$query = "select MIN(b.rssi) AS low, MAX(b.rssi) AS high from " .$database. ".device a inner join rssi b on a.id = b.device where a.id = " .$device. " and b.rssi < 0";
+	if(!($rslt = $conn->query($query))) {
+		echo "<script>output.add(\"MySQL Error: " .$mysqli->error. "\");" 
+			."output.timestamp() ;</script>";
+	} else {
+		$temp = $rslt->fetch_assoc();
+		$params .= "low: \"" .$temp["low"]. "\",";
+		$params .= "high: \"" .$temp["high"]. "\",";
+	}
+	$rslt->free();
+	$query = "select AVG(b.rssi) AS mean from " .$database. ".device a inner join rssi b on a.id = b.device where a.id = " .$device. " and b.rssi < 0";
+	if(!($rslt = $conn->query($query))) {
+		echo "<script>output.add(\"MySQL Error: " .$mysqli->error. "\");" 
+			."output.timestamp() ;</script>";
+	} else {
+		$params .= "mean: \"" .round($rslt->fetch_assoc()["mean"], 2). "\",";
+	}
+	$rslt->free();
+	
+	$rank = 0;
+	$query = "select floor(count(*)/2) from " .$database. ".device a inner join rssi b on a.id = b.device "
+		."where a.id = " .$device. " and b.rssi < 0";
+	if(!($rslt = $conn->query($query))) {
+		echo "<script>output.add(\"MySQL Error: " .$conn->error. "\");" 
+			."output.timestamp() ;</script>";
+	} else {
+		$rank = $rslt->fetch_row()[0];
+		$rslt->free();
+		$query = "select b.rssi from " .$database. ".device a inner join rssi b on a.id = b.device "
+		."where a.id = " .$device. " and b.rssi < 0 order by b.rssi asc limit " .$rank. ",1";
+		if(!($rslt = $conn->query($query))) {
+			echo "<script>output.add(\"MySQL Error: " .$conn->error. "\");" 
+				."output.timestamp() ;</script>";
+		} else {
+			$median = $rslt->fetch_row()[0];
+			$params .= "median: \"" .$median. "\"";
+		}
+	}
+	$rslt->free();
+	
+	$params .= "}";
+    return $params;
+}
+
 try {
 	$access = new DOMDocument();
 	$access->load("../../access.xml");
@@ -81,8 +164,10 @@ try {
 		} else {
 			$i = 0;
 			echo "<ul class=\"list-group\">";
+			echo "<script>devices = {};</script>";
 			while ($row = $result->fetch_assoc()) {
 				echo "<li class=\"list-group-item list-group-flush list-group-item-action\" value=\"" .$row["id"]. "\">" .$row["mac"]. "</li>";
+				echo "<script>devices[" .$row["id"]. "] = " .tab_content_dev($mysqli, $db, $row["id"]). "</script>";
 				$i++ ;
 			}
 			echo "</ul>";
@@ -95,6 +180,8 @@ try {
 					."item.addClass(\"disabled\");"
 					."output.push();output.add(\"Loading RSSI Values:\");"
 					."var formData = {\"id\" : $(this).val()};"
+					."cpanel.add(\"device\", devices[formData.id]);"
+					."cpanel.select(\"device\");"
 					."$.ajax({url : \"./php/rss_test.php\","
 						."type: \"POST\","
 						."data: formData,"
