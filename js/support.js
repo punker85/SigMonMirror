@@ -1,5 +1,5 @@
 var centerLat = 29.648612, centerLng = -82.343504;
-var map, output, testmenu, nodes, devices, control;
+var map, output, testmenu, nodes, devices, trilats, control, zoom;
 	
 function initialize() {
 	output = new Output("output", "out-exp", "out-min", "out-rem");
@@ -99,6 +99,7 @@ function initialize() {
 	testmenu = new TestMenu("expTest", "devTest", "rssTest");
 	nodes = {};
 	devices = {};
+	trilats = {};
 	control = new ControlMenu("showExp", "showDev", "showRss", "showRed");
 	cpanel = new ContentPanel();
 	setTimeout(function() {cpanel.select("rssi");}, 1500);
@@ -108,6 +109,59 @@ function initialize() {
 	setTimeout(function() {cpanel.select("rssi");}, 1900);
 	setTimeout(function() {cpanel.select("admin");}, 2000);
 	setTimeout(function() {output.add("Content panel ready.");output.timestamp();}, 2100);
+	zoom = 0;
+	google.maps.event.addListener(map, "zoom_changed", function() {
+		if(zoom != map.getZoom()) {
+			zoom = map.getZoom();
+			let xy = 0;
+			let rpi = 0;
+			switch(zoom) {
+				case 24:
+				case 23:
+				case 22:
+					rpi = 24;
+					xy = 12;
+					break;
+				case 21:
+					rpi = 20;
+					xy = 8;
+					break;
+				case 20:
+					rpi = 16;
+					xy = 8;
+					break;
+				case 19:
+					rpi = 12;
+					xy = 4;
+					break;
+				case 18:
+					rpi = 8;
+					xy = 0;
+					break;
+				case 17:
+					rpi = 8
+					xy = 0;
+					break;
+				case 16:
+					rpi = 4;
+					xy = 0;
+					break;
+				default:
+					rpi = 4;
+					xy = 0;
+			}
+			for(var key in trilats) {
+				trilats[key].marker.icon.size = new google.maps.Size(xy, xy);
+				trilats[key].marker.icon.scaledSize = new google.maps.Size(xy, xy);
+				trilats[key].marker.icon.anchor = new google.maps.Point(xy/2, xy/2);
+			}
+			for(var key in nodes) {
+				nodes[key].marker.icon.size = new google.maps.Size(rpi, rpi);
+				nodes[key].marker.icon.scaledSize = new google.maps.Size(rpi, rpi);
+				nodes[key].marker.icon.anchor = new google.maps.Point(rpi/2, rpi/2);
+			}
+		}
+	});
 }
 
 class MapTooltip extends google.maps.OverlayView {
@@ -230,8 +284,9 @@ class Node {
 		let icon = {
 			url: "./img/icons8-raspberry-pi-16.png",
 			size: new google.maps.Size(16, 16),
+			scaledSize: new google.maps.Size(16, 16),
 			origin: new google.maps.Point(0, 0),
-			anchor: new google.maps.Point(8, 7)
+			anchor: new google.maps.Point(8, 8)
 		};
 		this.marker = new google.maps.Marker({
 			position: new google.maps.LatLng(this.latitude, this.longitude),
@@ -265,10 +320,11 @@ class Node {
 		let m = this.marker;
 		let c = this.coverage;
 		if(!m.getMap()) {
-			map.setZoom(18);
 			c.setOptions({strokeOpacity: 0.8, fillOpacity: 0.3});
-			if(panable) 
+			if(panable) {
+				setTimeout(function(){map.setZoom(18);}, 100);
 				setTimeout(function(){map.panTo(m.position);}, 500);
+			}
 			setTimeout(function(){m.setMap(map);c.setMap(map);}, 1000);
 		} else {
 			setTimeout(function(){map.panTo(m.position);}, 100);
@@ -283,6 +339,47 @@ class Node {
 			setTimeout(function(){m.setMap(null);c.setMap(null);}, 1350);
 		}
 	}	
+}
+
+class Trilat {
+	constructor(map, triple, mac, lat, lng) {
+		this.map = map;
+		this.triple = triple;
+		this.mac = mac;
+		this.lat = lat;
+		this.lng = lng;
+		let icon = {
+			url: "./img/16_button_red.png",
+			size: new google.maps.Size(16, 16),
+			scaledSize: new google.maps.Size(16, 16),
+			origin: new google.maps.Point(0, 0),
+			anchor: new google.maps.Point(8, 8)
+		};
+		this.marker = new google.maps.Marker({
+			position: new google.maps.LatLng(this.lat, this.lng),
+			icon: icon
+		});
+		this.tooltip = new MapTooltip(this.marker.position, this.mac, "tooltip");
+		let tool = this.tooltip;
+		this.marker.addListener("mouseover", function() {
+			tool.setMap(map);
+		});
+		this.marker.addListener("mouseout", function() {
+			tool.setMap(null);
+		});
+	}
+	clear() {
+		this.marker.setMap(null);
+		this.tooltip.setMap(null);
+	}
+	draw() {
+		let m = this.marker;
+		if(!m.getMap()) {
+			m.setMap(map);
+		} else {
+			m.setMap(null);
+		}
+	}
 }
 
 function TestMenu(experiment, device, rssi) {
