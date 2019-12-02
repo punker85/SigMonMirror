@@ -175,7 +175,7 @@ try {
 	} elseif(isset($_POST["all"])) {
 		echo "<ul class=\"list-group\">"; 
 		$tri_exps = array();
-		$qstr = "SELECT exp1, exp2, exp3, a.location as aloc, a.lat as alat, a.lng as alng, b.location as bloc, b.lat as blat, b.lng as blng, c.location as cloc, c.lat as clat, c.lng as clng FROM " .$db. ".triplet"
+		$qstr = "SELECT triplet.id as id, exp1, exp2, exp3, a.location as aloc, a.lat as alat, a.lng as alng, b.location as bloc, b.lat as blat, b.lng as blng, c.location as cloc, c.lat as clat, c.lng as clng FROM " .$db. ".triplet"
 			." inner join " .$table. " a on triplet.exp1 = a.id"
 			." inner join " .$table. " b on triplet.exp2 = b.id"
 			." inner join " .$table. " c on triplet.exp3 = c.id";
@@ -185,7 +185,7 @@ try {
 		} else {
 			$j = 0;
 			while ($row = $result->fetch_assoc()) {
-				echo "<li class=\"list-group-item list-group-flush list-group-item-action\"><ul style=\"list-style-type: none; padding: 0\">" 
+				echo "<li class=\"list-group-item list-group-flush list-group-item-action\" value=\"" .$row["id"]. "\"><ul style=\"list-style-type: none; padding: 0\">" 
 					."<li value=\"" .$row["exp1"]. "\" disabled>" .$row["aloc"]. "</li>"
 					."<li value=\"" .$row["exp2"]. "\" disabled>" .$row["bloc"]. "</li>"
 					."<li value=\"" .$row["exp3"]. "\" disabled>" .$row["cloc"]. "</li>"				
@@ -196,6 +196,17 @@ try {
 				array_push($tri_exps, $row["exp1"]);
 				array_push($tri_exps, $row["exp2"]);
 				array_push($tri_exps, $row["exp3"]);
+				
+				$qstr = "SELECT id, triple, mac, lat, lng FROM " .$db. ".trilat WHERE trilat.triple = " .$row["id"];
+				if(!($subresult = $mysqli->query($qstr))) {
+					echo "<script>output.add(\"MySQL Error: " .$mysqli->error. "\");" 
+						."output.timestamp() ;</script>";
+				} else {
+					while ($subrow = $subresult->fetch_assoc()) {
+						echo "<script>trilats[" .$subrow["id"]. "] = new Trilat(map," .$row["id"]. ",\"" .$subrow["mac"]. "\",\"" .$subrow["lat"]. "\",\"" .$subrow["lng"]. "\");</script>";
+					}
+					$subresult->free();
+				}
 				$j++ ;
 			}
 			$result->free();
@@ -216,7 +227,10 @@ try {
 					."let lat = (parseFloat(node1.latitude) + parseFloat(node2.latitude) + parseFloat(node3.latitude)) / 3;"
 					."let lng = (parseFloat(node1.longitude) + parseFloat(node2.longitude) + parseFloat(node3.longitude)) / 3;"
 					."setTimeout(function(){map.panTo(new google.maps.LatLng(lat, lng));}, 500);"
+					."setTimeout(function(){map.setZoom(20);}, 800);"
 					."setTimeout(function(){item.removeClass(\"disabled\");}, 1300);"
+					."let i = 0;"
+					."for(var key in trilats) { if(trilats[key].triple == item.val()) { let tri = trilats[key]; setTimeout(function() { tri.draw(); }, (1500 + i*100)); i++;} }"
 					."if(!$(this).hasClass(\"list-group-item-success\")) {"
 						."$(this).removeClass(\"list-group-item-danger\").off(\"mouseenter mouseleave\").addClass(\"list-group-item-success\");"
 						."node1.listener = node1.marker.addListener(\"click\", function(e) {"
